@@ -1,0 +1,27 @@
+name:                BrainFlaX86
+version:             0.1.0.0
+synopsis:            Compile Brain-Flak to x86 machine language
+homepage:            https://github.com/bforte/BrainFlaX86#README.md
+license:             BSD3
+copyright:           2018 BMO
+category:            Language
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+executable brainflax86
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       AsmTemplates
+                     , BFMonad
+                     , Compiler
+                     , Quoter
+  default-language:    Haskell2010
+  ghc-options:         -Wunused-imports -Wunused-matches -Wincomplete-patterns
+  build-depends:       base >= 4.7 && < 5
+                     , containers
+                     , directory
+                     , mtl
+                     , parsec
+                     , process
+                     , template-haskell
