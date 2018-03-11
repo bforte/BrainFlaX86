@@ -41,7 +41,7 @@ str = QuasiQuoter
 quoteStr str = case parse (strP <* eof) "th" str of
   Left e  -> error (show e)
   Right s | empty s   -> [e| emit str |]
-          | otherwise -> [e| \d-> emit $ s `replace` M.fromList d |]
+          | otherwise -> [e| \d-> emit $ s `replace` d |]
 
   where strP :: Parsec String () [Str Char]
         strP = many (varP <|> litP)

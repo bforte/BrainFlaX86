@@ -4,6 +4,7 @@ module Compiler (OS(..), linux, windows, osx, parseProg, compile) where
 
 import Control.Monad
 import Data.List
+import qualified Data.Map as M
 import Text.Parsec
 
 import AsmTemplates
@@ -11,19 +12,20 @@ import BFMonad
 import Quoter
 
 
-data OS = OS {dict :: [(String,String)], gcc  :: String, exe  :: String}
+data OS = OS {dict :: M.Map String String, gcc  :: String, exe  :: String}
 
-linux   = OS (mkDict ""  4096) "gcc" ""
-windows = OS (mkDict "_" 4096) "gcc.exe" ".exe"
-osx     = OS (mkDict "_" 4096) "gcc" ""
+linux   = OS (mkDict ""  4096 `mappend` err) "gcc" ""
+  where err = M.fromList [("push_stderr", "push stderr")]
+windows = OS (mkDict "_" 4096 `mappend` err) "gcc.exe" ".exe"
+  where err = M.fromList [("push_stderr", ""), ("fprintf","printf")]  -- windows has no stderr(?)
+osx     = OS (mkDict "_" 4096 `mappend` err) "gcc" ""
+  where err = M.fromList [("push_stderr", "push _stderr")]
 
-mkDict :: String -> Int -> [(String,String)]
-mkDict pre sz = [(l, pre ++ l) | l <- labels]
-             ++ [("stack_size",show sz),("stack_size_bytes",show $ 4*sz)]
+mkDict :: String -> Int -> M.Map String String
+mkDict pre sz = M.fromList $
+    [(l, pre ++ l) | l <- labels] ++ [("stack_size",show sz),("stack_size_bytes",show $ 4*sz)]
 
-  where labels = [ "exit", "fprintf", "free", "main", "malloc", "printf"
-                 , "realloc", "sscanf", "stderr"
-                 ]
+  where labels = [ "exit", "fprintf", "free", "main", "malloc", "printf", "realloc", "sscanf"]
 
 
 parseProg :: String -> Either ParseError Prog

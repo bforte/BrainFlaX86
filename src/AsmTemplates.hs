@@ -2,11 +2,13 @@
 
 module AsmTemplates (header, footer) where
 
+import qualified Data.Map as M
+
 import BFMonad
 import Quoter
 
 
-header :: [(String,String)] -> BF ()
+header :: M.Map String String -> BF ()
 header = [str|
 .data
   read_error: .ascii "error: couldn't read '%s'\n\0"
@@ -25,7 +27,7 @@ header = [str|
 usage_exit:
     push (%ebp)
     push $usage_str
-    push {stderr}
+    {push_stderr}
     call {fprintf}
     add $4,%esp
     call {exit}
@@ -37,7 +39,7 @@ read_failed:
     # else: print error & exit(1)
     push (%ebp,%ecx,4)
     push $read_error
-    push {stderr}
+    {push_stderr}
     call {fprintf}
     push $1
     call usage_exit
@@ -66,7 +68,7 @@ read_flag:
 flag_failed:
     push 4(%ebp)
     push $flag_error
-    push {stderr}
+    {push_stderr}
     call {fprintf}
     push $2
     call usage_exit
@@ -84,7 +86,7 @@ null_check:
     jne return_null_check
 
     push $mem_error
-    push {stderr}
+    {push_stderr}
     call {fprintf}
 
     push $3
@@ -196,7 +198,7 @@ pop_add:
 
 |]
 
-footer :: [(String,String)] -> BF ()
+footer :: M.Map String String -> BF ()
 footer = [str|
     # print ToS, decrement index, rinse & repeat
     cmp $0,%ecx
